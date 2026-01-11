@@ -26,6 +26,10 @@ public class PredictionService {
     private static final String MODEL_ID_URL =
             "http://168.197.48.239:8000/item/predictions/";
 
+    // ⭐ NUEVA CONSTANTE para el endpoint de género
+    private static final String GENDER_PROBABILITY_URL =
+            "http://168.197.48.239:8000/probability/gender";
+
     // FORMULARIO MANUAL
     public ModelPredictionDTO predict(ModelDataDTO request) {
         return restTemplate.postForObject(
@@ -37,7 +41,6 @@ public class PredictionService {
 
     // BÚSQUEDA POR ID
     public PredictionResponseDTO predictByPublicId(String publicId) {
-
         String url = MODEL_ID_URL + publicId;
 
         try {
@@ -63,7 +66,6 @@ public class PredictionService {
             );
 
         } catch (HttpClientErrorException.NotFound ex) {
-            // Intentar extraer el campo 'detail' del body JSON del servicio externo
             String detailMsg = ex.getResponseBodyAsString();
             try {
                 ObjectMapper mapper = new ObjectMapper();
@@ -72,10 +74,22 @@ public class PredictionService {
                     detailMsg = node.get("detail").asText();
                 }
             } catch (Exception ignore) {
-                // fallback: usar el body tal cual
             }
 
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, detailMsg);
+        }
+    }
+
+    public Map<String, Object> getGenderProbability() {
+        try {
+            ResponseEntity<Map> response =
+                    restTemplate.getForEntity(GENDER_PROBABILITY_URL, Map.class);
+            return response.getBody();
+        } catch (HttpClientErrorException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(ex.getStatusCode().value()),
+                    "Error al obtener probabilidades por género: " + ex.getMessage()
+            );
         }
     }
 }

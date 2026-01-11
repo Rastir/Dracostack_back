@@ -6,6 +6,8 @@ import com.churninsight.api.dto.PredictionResponseDTO;
 import com.churninsight.api.service.PredictionService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/predict")
 @CrossOrigin(origins = "*")
@@ -27,7 +29,12 @@ public class PredictionController {
     @GetMapping("/client/{publicId}")
     public PredictionResponseDTO predictByPublicId(
             @PathVariable String publicId) {
-
         return predictionService.predictByPublicId(publicId);
+    }
+
+    // probabilidad por género
+    @GetMapping("/probability/gender")
+    public Map<String, Object> getGenderProbability() {
+        return predictionService.getGenderProbability();
     }
 }
