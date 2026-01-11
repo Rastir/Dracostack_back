@@ -1,14 +1,21 @@
-# 1. Imagen base con Java 17
-FROM eclipse-temurin:17-jdk-jammy
-
-# 2. Directorio de trabajo dentro del contenedor
+# Etapa 1: Compilación
+FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
 
-# 3. Copiar el JAR generado
-COPY target/*.jar app.jar
+# Copiar archivos de Maven
+COPY pom.xml .
+COPY src ./src
 
-# 4. Exponer el puerto de Spring Boot
+# Compilar el proyecto
+RUN apt-get update && apt-get install -y maven
+RUN mvn clean package -DskipTests
+
+# Etapa 2: Ejecución
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+
+# Copiar el JAR de la etapa de compilación
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
-
-# 5. Ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
